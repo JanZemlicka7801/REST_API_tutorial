@@ -7,10 +7,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 
+//is a JPA which makes this object ready to be stored
 @Entity
 class Employee {
 
+    //this is marked JPA annotation to indicate that this 'ID' will be a primary key in the database
     private @Id
+    //is automatically populate
     @GeneratedValue Long id;
     private String name;
     private String role;
