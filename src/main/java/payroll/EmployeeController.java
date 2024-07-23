@@ -1,10 +1,12 @@
 package payroll;
 
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.hateoas.EntityModel;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 //indicates that the data returned by each method is written straight into the response body instead of rendering a template
 @RestController
@@ -18,9 +20,9 @@ class EmployeeController {
     }
 
     /*
+
     We have routes for each operation (@GetMapping, @PostMapping, @PutMapping and @DeleteMapping, corresponding to
     HTTP GET, POST, PUT, and DELETE calls). (We recommend reading each method and understanding what they do.)
-     */
 
     //aggregate root
     //tag::get-aggregate-root[]
@@ -29,6 +31,19 @@ class EmployeeController {
         return repository.findAll();
     }
     // end::get-aggregate-root[]
+
+    */
+
+    @GetMapping("/employees")
+    //collection of resources, also can include links (collection of employee resources)
+    CollectionModel<EntityModel<Employee>> all() {
+        List<EntityModel<Employee>> employees = repository.findAll().stream().map(employee -> EntityModel.of(employee,
+                linkTo(methodOn(EmployeeController.class).one(employee.getId())).withSelfRel(),
+                linkTo(methodOn(EmployeeController.class).all()).withRel("employees")))
+                .collect(Collectors.toList());
+
+        return CollectionModel.of(employees, linkTo(methodOn(EmployeeController.class).all()).withSelfRel());
+    }
 
     @PostMapping("/employees")
     Employee newEmployee(@RequestBody Employee newEmployee) {
