@@ -1,6 +1,8 @@
 package payroll;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.hateoas.EntityModel;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 import java.util.List;
 
@@ -34,16 +36,18 @@ class EmployeeController {
     }
 
     //single item
-
     @GetMapping("/employees/{id}")
-    Employee one(@PathVariable Long id) {
-
-        return repository.findById(id)
+    EntityModel<Employee> one(@PathVariable Long id) {
+        Employee employee = repository.findById(id)
                 .orElseThrow(() -> new EmployeeNotFoundException(id));
+
+        return EntityModel.of(employee, //
+                linkTo(methodOn(EmployeeController.class).one(id)).withSelfRel(),
+                linkTo(methodOn(EmployeeController.class).all()).withRel("employees"));
     }
 
-    @PutMapping("/employee/{id}")
-    Employee replaceEmployees(@RequestBody Employee newEmployee, @PathVariable Long id) {
+    @PutMapping("/employees/{id}")
+    Employee replaceEmployee(@RequestBody Employee newEmployee, @PathVariable Long id) {
         return repository.findById(id)
                 .map(employee -> {
                     employee.setName(newEmployee.getName());
@@ -51,11 +55,12 @@ class EmployeeController {
                     return repository.save(employee);
                 })
                 .orElseGet(() -> {
+                    newEmployee.setId(id);
                     return repository.save(newEmployee);
                 });
     }
 
-    @DeleteMapping("/employee/{id}")
+    @DeleteMapping("/employees/{id}")
     void deleteEmployee(@PathVariable Long id) {
         repository.deleteById(id);
     }
